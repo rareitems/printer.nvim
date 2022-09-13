@@ -1,5 +1,7 @@
 <h1 align="center"> printer.nvim </h1>
-<p align="center"><sup> Neovim plugin adding an operator for debug printing </sup></p>
+<p align="center"><sup> Neovim plugin adding an operator that allows quick printing/logging based on the filetype </sup></p>
+
+![demo](https://user-images.githubusercontent.com/83038443/189985116-a4e72aab-0faa-4b05-8960-44f5822367d4.gif)
 
 ### Installation
 
@@ -19,7 +21,7 @@ use {
 
 Use your keymap followed by a motion to quickly print/log the text from the motion.
 
-#### Default Configuration
+### Default Configuration
 
 ```lua
 {
