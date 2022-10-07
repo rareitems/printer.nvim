@@ -40,9 +40,12 @@ use {
     config = function()
         require('printer').setup({
             keymap = "gp" -- Plugin doesn't have any keymaps by default
-            behavior = "insert_below" -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
+            behavior = "insert_below" -- how operator should behave
+            -- "insert_below" will insert the text below the cursor
+            --  "yank" will not insert but instead put text into the default '"' register
             formatters = {
-              -- you can define your formatters for specific filetypes by assigning function that takes a string, which is a text from the motion and returns a string
+              -- you can define your formatters for specific filetypes
+              -- by assigning function that takes a string, which is a text from the motion, and returns a string
               lua = function(text)
                 return string.format('print("%s: " .. %s)', text, text)
               end,
