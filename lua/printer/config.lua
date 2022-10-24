@@ -25,7 +25,7 @@ local Config = {
     end,
 
     rust = function(text)
-      return string.format('println!("%s: {:#?}", %s);', text, text)
+      return string.format('dbg!(%s);', text)
     end,
 
     zsh = function(text)
