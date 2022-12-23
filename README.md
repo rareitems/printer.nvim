@@ -1,5 +1,5 @@
 <h1 align="center"> printer.nvim </h1>
-<p align="center"><sup> Neovim plugin adding an operator that allows quick printing/logging based on the filetype </sup></p>
+<p align="center"><sup> Neovim plugin that adds an operator which allows quick adding printing/logging statements with text from textobjects / visual range based on the filetype </sup></p>
 
 ![demo](https://user-images.githubusercontent.com/83038443/189985116-a4e72aab-0faa-4b05-8960-44f5822367d4.gif)
 
@@ -17,6 +17,7 @@ use {
     end
 }
 ```
+
 ### Usage
 
 Use your keymap followed by a motion to quickly print/log the text from the motion.
@@ -27,7 +28,7 @@ Use your keymap followed by a motion to quickly print/log the text from the moti
 {
     behavior = "insert_below" -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
     formatters  = {
-      -- check lua/config.lua for default value of formatters
+      -- check lua/formatters.lua for default value of formatters
     }
 }
 ```
@@ -51,11 +52,6 @@ use {
               end,
             }
           })
-      -- Optional keymaps
-      vim.keymap.set("n", "<C-p>", "<Plug>(printer_print)iw", {})
-      vim.keymap.set("n", "<C-P>", "<Plug>(printer_print)iW", {})
-      -- You can also assign your formatters through the exported global object
-      Printer.cfg.formatters.lua = function(text) return text end
     end
 }
 ```

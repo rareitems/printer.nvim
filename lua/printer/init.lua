@@ -1,3 +1,20 @@
+---@mod printer.configuration Configuration
+---@brief [[
+--->
+---{
+---    behavior = "insert_below" -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
+---    formatters  = {
+---      -- check lua/formatters.lua for default value of formatters
+---    }
+---}
+---<
+---@brief ]]
+
+---@mod printer.setting_custom_formatters Setting Custom Formatters
+---@brief [[
+--- Custom formatters can be setup from config, setting 'vim.b.printer' variable or 'vim.g.printer[filtetype]' where 'filetype' is name of the filetype.
+---@brief ]]
+
 local UsersFormatters = {}
 local Behavior = nil
 
@@ -72,6 +89,7 @@ local function input(text)
   end
 end
 
+---@private
 Printer._normal_print = function()
   input(get_text_from_textobject()[1])
 end
@@ -81,6 +99,7 @@ local function operator_normal()
   return "g@"
 end
 
+---@private
 Printer._visual_print = function()
   input(get_text_from_visualrange()[1])
 end
@@ -90,6 +109,7 @@ local function operator_visual()
   return "g@"
 end
 
+--- Used for setting initial configuration see |printer.configuration|
 Printer.setup = function(cfg_user)
   local keymap = cfg_user.keymap
 
