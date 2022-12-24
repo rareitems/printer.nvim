@@ -1,52 +1,52 @@
 local formatters = {
-  lua = function(text)
-    return string.format("print([[%s: ]] .. %s)", text, text)
+  lua = function(text_inside, text_var)
+    return string.format("print([[%s = ]] .. %s)", text_inside, text_var)
     -- for nvim stuff
-    -- return string.format('print([[%s: ]] .. vim.inspect(%s))', text, text)
+    -- return string.format('print([[%s: ]] .. vim.inspect(%s))', text_inside, text_var)
   end,
 
-  python = function(text)
-    return string.format('print("%s:", %s)', text, text)
+  python = function(text_inside, text_var)
+    return string.format('print("%s =", %s)', text_inside, text_var)
   end,
 
-  javascript = function(text)
-    return string.format('console.log("%s:", %s)', text, text)
+  javascript = function(text_inside, text_var)
+    return string.format('console.log("%s = ", %s)', text_inside, text_var)
   end,
 
-  typescript = function(text)
-    return string.format('console.log("%s:", %s)', text, text)
+  typescript = function(text_inside, text_var)
+    return string.format('console.log("%s = ", %s)', text_inside, text_var)
   end,
 
-  go = function(text)
-    return string.format('fmt.Println("%s:", %s)', text, text)
+  go = function(text_inside, text_var)
+    return string.format('fmt.Println("%s = ", %s)', text_inside, text_var)
   end,
 
-  vim = function(text)
-    return string.format('echo "%s: ".%s', text, text)
+  vim = function(text_inside, text_var)
+    return string.format('echo "%s = ".%s', text_inside, text_var)
   end,
 
-  rust = function(text)
-    return string.format([[println!("{%s:#?}");]], text)
+  rust = function(text_inside, text_var)
+    return string.format([[println!("%s = {:#?}", %s);]], text_inside, text_var)
   end,
 
-  zsh = function(text)
-    return string.format('echo "%s: $%s"', text, text)
+  zsh = function(text_inside, text_var)
+    return string.format('echo "%s = $%s"', text_inside, text_var)
   end,
 
-  bash = function(text)
-    return string.format('echo "%s: $%s"', text, text)
+  bash = function(text_inside, text_var)
+    return string.format('echo "%s = $%s"', text_inside, text_var)
   end,
 
-  sh = function(text)
-    return string.format('echo "%s: $%s"', text, text)
+  sh = function(text_inside, text_var)
+    return string.format('echo "%s = $%s"', text_inside, text_var)
   end,
 
-  java = function(text)
-    return string.format('System.out.println("%s: " + %s);', text, text)
+  java = function(text_inside, text_var)
+    return string.format('System.out.println("%s = " + %s);', text_inside, text_var)
   end,
 
-  cpp = function(text)
-    return string.format('std::cout << "%s: " << %s << endl;', text, text)
+  cpp = function(text_inside, text_var)
+    return string.format('std::cout << "%s = " << %s << endl;', text_inside, text_var)
   end,
 }
 

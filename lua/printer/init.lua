@@ -4,25 +4,21 @@
 ---{
 ---    behavior = "insert_below" -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
 ---    formatters  = {
----      -- check lua/formatters.lua for default value of formatters
+---        filetype = function (text, text) return text end
+---        -- check lua/formatters.lua for default value of formatters
 ---    }
+---    add_to_inside = function(text) return text end -- function which adds some text to the string inside print statement, if explicitly set to 'nil' it won't add anything
 ---}
 ---<
 ---@brief ]]
 
 ---@mod printer.setting_custom_formatters Setting Custom Formatters
 ---@brief [[
---- Custom formatters can be setup from config, setting 'vim.b.printer' variable or 'vim.g.printer[filtetype]' where 'filetype' is name of the filetype.
+--- Custom formatters can be setup from 'printer.setup', setting 'vim.b.printer' variable or 'vim.g.printer[filtetype]' where 'filetype' is name of the filetype.
 ---@brief ]]
 
 local UsersFormatters = {}
 local Behavior = nil
-
-local function try_get_global_scope(ft)
-  if vim.g.printer then
-    return vim.g.printer[ft]
-  end
-end
 
 local notify = function(text)
   vim.notify("PRINTER: " .. text)
@@ -63,16 +59,20 @@ local function get_text_from_visualrange()
     -- columns are 0 based indexed, have to be exclusive, so adding 1 to the end
     return vim.api.nvim_buf_get_text(0, range.srow - 1, range.scol, range.erow - 1, range.ecol + 1, {})
   else
-    notify("printer.nvim doesn't support multiple lines textobjects")
+    notify("printer.nvim doesn't support multiple lines ranges")
     return nil
   end
 end
 
 local Printer = {}
 
+AddToInside = function(text)
+  return string.format("[%s:%s] %s", vim.fn.expand("%"), vim.fn.line("."), text)
+end
+
 local function input(text)
   local filetype = vim.bo.filetype
-  local printer = vim.b["printer"] or try_get_global_scope(filetype) or UsersFormatters[filetype] or require("printer.formatters")[filetype]
+  local printer = vim.b["printer"] or vim.g.printer[filetype] or UsersFormatters[filetype] or require("printer.formatters")[filetype]
 
   if printer == nil then
     notify("no formatter defined for " .. filetype .. " filetype")
@@ -80,7 +80,14 @@ local function input(text)
   end
 
   if text ~= nil then
-    local text_to_insert = printer(text)
+    local text_to_insert
+
+    if AddToInside then
+      text_to_insert = printer(AddToInside(text), text)
+    else
+      text_to_insert = printer(text, text)
+    end
+
     if Behavior == "insert_below" then
       vim.fn.execute("normal! o" .. text_to_insert)
     elseif Behavior == "yank" then
@@ -122,8 +129,22 @@ Printer.setup = function(cfg_user)
     vim.keymap.set("v", keymap, operator_visual, { expr = true, desc = "Operator keymap for printer.nvim" })
   end
 
+  -- check if cfg_user has add_to_text key,
+  -- add_to_text = nill should be valid can't check it just through nill check
+  local has_add_to_inside = false
+  for key, _ in pairs(cfg_user) do
+    if key == "add_to_text" then
+      has_add_to_inside = true
+    end
+  end
+
+  if has_add_to_inside then
+    AddToInside = cfg_user.add_to_inside
+  end
+
   UsersFormatters = cfg_user.formatters or {}
   Behavior = cfg_user.behavior or "insert_below"
+  vim.g.printer = {}
 end
 
 return Printer
