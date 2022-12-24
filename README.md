@@ -29,7 +29,7 @@ Use your keymap followed by a motion to quickly print/log the text from the moti
 
 ```lua
 {
-    behavior = "insert_below" -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
+    behavior = "insert_below", -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
     formatters  = {
       -- check lua/formatters.lua for default value of formatters
     }
