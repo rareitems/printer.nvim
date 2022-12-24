@@ -1,7 +1,12 @@
 <h1 align="center"> printer.nvim </h1>
-<p align="center"><sup> Neovim plugin that adds an operator which allows quick adding printing/logging statements with text from textobjects / visual range based on the filetype </sup></p>
+
+![printer_demo](https://user-images.githubusercontent.com/83038443/209416747-4f387f45-2901-4147-8397-bd4ac1fda58b.gif)
+
+Neovim plugin that adds an operator which allows adding printing/logging statements with text from textobjects / visual range based on the filetype
 
 ### Installation
+
+
 
 - With [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
