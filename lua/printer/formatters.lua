@@ -50,7 +50,7 @@ local formatters = {
   end,
 
   ruby = function(inside, variable)
-    return string.format('pp "%s = ", %s', inside, variable)
+    return string.format('puts "%s = #{%s}"', inside, variable)
   end,
 }
 
