@@ -1,18 +1,18 @@
----@mod printer.configuration Configuration
+---@mod Printer.configuration Config
 ---@brief [[
 --->
 ---{
----    behavior = "insert_below" -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
+---    behavior = "insert_below", -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
 ---    formatters  = {
 ---        filetype = function (text, text) return text end
 ---        -- check lua/formatters.lua for default value of formatters
----    }
----    add_to_inside = function(text) return text end -- function which adds some text to the string inside print statement, if explicitly set to 'nil' it won't add anything
+---    },
+---    add_to_inside = function(text) return text end -- function which adds some text to the string inside print statement
 ---}
 ---<
 ---@brief ]]
 
----@mod printer.setting_custom_formatters Setting Custom Formatters
+---@mod Printer.setting_custom_formatters Setting Custom Formatters
 ---@brief [[
 --- Custom formatters can be setup from 'printer.setup', setting 'vim.b.printer' variable or 'vim.g.printer[filtetype]' where 'filetype' is name of the filetype.
 ---@brief ]]
@@ -22,6 +22,10 @@ local Behavior = nil
 
 local notify = function(text)
   vim.notify("PRINTER: " .. text)
+end
+
+local notify_error = function(text)
+  vim.notify("PRINTER: " .. text, vim.log.levels.ERROR)
 end
 
 -- Get range of a textobject
@@ -75,7 +79,7 @@ local function input(text)
   local printer = vim.b["printer"] or vim.g.printer[filetype] or UsersFormatters[filetype] or require("printer.formatters")[filetype]
 
   if printer == nil then
-    notify("no formatter defined for " .. filetype .. " filetype")
+    notify("no formatter defined for " .. filetype .. " filetype. See ':help Printer.setting_custom_formatters' on how to add formatter for this filetype.")
     return
   end
 
@@ -122,24 +126,23 @@ Printer.setup = function(cfg_user)
 
   if keymap == nil then
     vim.schedule_wrap(function()
-      vim.notify("Printer config was called without a keymap")
+      notify("Printer config was called without a keymap")
     end)
   else
     vim.keymap.set("n", keymap, operator_normal, { expr = true, desc = "Operator keymap for printer.nvim" })
     vim.keymap.set("v", keymap, operator_visual, { expr = true, desc = "Operator keymap for printer.nvim" })
   end
 
-  -- check if cfg_user has add_to_inside key,
-  -- add_to_inside = nill should be valid can't check it just through nill check
-  local has_add_to_inside = false
-  for key, _ in pairs(cfg_user) do
-    if key == 'add_to_inside' then
-      has_add_to_inside = true
-    end
-  end
 
-  if has_add_to_inside then
-    AddToInside = cfg_user.add_to_inside
+  for key, value in pairs(cfg_user) do
+    if key == "add_to_inside" then
+      if type(value) == "function" then
+        AddToInside = value
+      else
+        notify_error("add_to_inside field is not a function")
+        return
+      end
+    end
   end
 
   UsersFormatters = cfg_user.formatters or {}

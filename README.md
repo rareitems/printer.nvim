@@ -6,8 +6,6 @@ Neovim plugin that adds an operator which allows adding printing/logging stateme
 
 ### Installation
 
-
-
 - With [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```lua
@@ -61,8 +59,10 @@ use {
             add_to_inside = function(text)
                 return string.format("[%s:%s] %s", vim.fn.expand("%"), vim.fn.line("."), text)
             end,
-            -- can explicitly set to nil to turn off default behaviour
-            -- add_to_inside = nil
+            -- set to to indenity function to turn off the default behaviour
+            -- add_to_inside = function(text)
+            --     return text
+            -- end,
           })
     end
 }
