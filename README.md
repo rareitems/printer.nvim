@@ -29,7 +29,7 @@ Use your keymap followed by a motion to quickly print/log the text from the moti
 
 ```lua
 {
-    behavior = "insert_below" -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
+    behavior = "insert_below", -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
     formatters  = {
       -- check lua/formatters.lua for default value of formatters
     }
@@ -43,8 +43,8 @@ use {
     'rareitems/printer.nvim',
     config = function()
         require('printer').setup({
-            keymap = "gp" -- Plugin doesn't have any keymaps by default
-            behavior = "insert_below" -- how operator should behave
+            keymap = "gp", -- Plugin doesn't have any keymaps by default
+            behavior = "insert_below", -- how operator should behave
             -- "insert_below" will insert the text below the cursor
             --  "yank" will not insert but instead put text into the default '"' register
             formatters = {
@@ -56,11 +56,11 @@ use {
               lua = function(inside, variable)
                 return string.format('print("%s: " .. %s)', inside, variable)
               end,
-            }
+            },
             -- function which modifies the text inside string in the print statement, by default it adds the path and line number
             add_to_inside = function(text)
                 return string.format("[%s:%s] %s", vim.fn.expand("%"), vim.fn.line("."), text)
-            end
+            end,
             -- can explicitly set to nil to turn off default behaviour
             -- add_to_inside = nil
           })
