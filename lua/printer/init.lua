@@ -133,6 +133,7 @@ Printer.setup = function(cfg_user)
     vim.keymap.set("v", keymap, operator_visual, { expr = true, desc = "Operator keymap for printer.nvim" })
   end
 
+  vim.keymap.set("n", "<Plug>(printer_print)", operator_normal, { expr = true, desc = "Get text out of textobject formatted for debug printing" })
 
   for key, value in pairs(cfg_user) do
     if key == "add_to_inside" then
