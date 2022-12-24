@@ -129,11 +129,11 @@ Printer.setup = function(cfg_user)
     vim.keymap.set("v", keymap, operator_visual, { expr = true, desc = "Operator keymap for printer.nvim" })
   end
 
-  -- check if cfg_user has add_to_text key,
-  -- add_to_text = nill should be valid can't check it just through nill check
+  -- check if cfg_user has add_to_inside key,
+  -- add_to_inside = nill should be valid can't check it just through nill check
   local has_add_to_inside = false
   for key, _ in pairs(cfg_user) do
-    if key == "add_to_text" then
+    if key == 'add_to_inside' then
       has_add_to_inside = true
     end
   end
