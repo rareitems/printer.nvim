@@ -24,9 +24,9 @@ local notify = function(text)
   vim.notify("PRINTER: " .. text)
 end
 
-local notify_error = function(text)
-  vim.notify("PRINTER: " .. text, vim.log.levels.ERROR)
-end
+-- local notify_error = function(text)
+--   vim.notify("PRINTER: " .. text, vim.log.levels.ERROR)
+-- end
 
 -- Get range of a textobject
 local function get_textobject_range()
@@ -43,7 +43,7 @@ local function get_text_from_textobject()
     -- columns are 0 based indexed, have to be exclusive, so adding 1 to the end
     return vim.api.nvim_buf_get_text(0, range.srow - 1, range.scol, range.erow - 1, range.ecol + 1, {})
   else
-    vim.pretty_print("printer.nvim doesn't support multiple lines textobjects")
+    notify("printer.nvim doesn't support multiple lines textobjects")
     return nil
   end
 end
@@ -102,7 +102,10 @@ end
 
 ---@private
 Printer._normal_print = function()
-  input(get_text_from_textobject()[1])
+  local text = get_text_from_textobject()[1]
+  if text then
+    input(text)
+  end
 end
 
 local function operator_normal()
@@ -112,7 +115,10 @@ end
 
 ---@private
 Printer._visual_print = function()
-  input(get_text_from_visualrange()[1])
+  local text = get_text_from_visualrange()[1]
+  if text then
+    input(text)
+  end
 end
 
 local function operator_visual()
@@ -122,27 +128,22 @@ end
 
 --- Used for setting initial configuration see |printer.configuration|
 Printer.setup = function(cfg_user)
-  local keymap = cfg_user.keymap
+  cfg_user = cfg_user or {}
 
-  if keymap == nil then
-    vim.schedule_wrap(function()
-      notify("Printer config was called without a keymap")
-    end)
+  if cfg_user.keymap then
+    vim.keymap.set("n", cfg_user.keymap, operator_normal, { expr = true, desc = "Operator keymap for printer.nvim" })
+    vim.keymap.set("v", cfg_user.keymap, operator_visual, { expr = true, desc = "Operator keymap for printer.nvim" })
   else
-    vim.keymap.set("n", keymap, operator_normal, { expr = true, desc = "Operator keymap for printer.nvim" })
-    vim.keymap.set("v", keymap, operator_visual, { expr = true, desc = "Operator keymap for printer.nvim" })
+    notify("Printer config was called without a keymap")
   end
 
   vim.keymap.set("n", "<Plug>(printer_print)", operator_normal, { expr = true, desc = "Get text out of textobject formatted for debug printing" })
 
-  for key, value in pairs(cfg_user) do
-    if key == "add_to_inside" then
-      if type(value) == "function" then
-        AddToInside = value
-      else
-        notify_error("add_to_inside field is not a function")
-        return
-      end
+  if cfg_user.add_to_inside then
+    if type(value) == "function" then
+      AddToInside = value
+    else
+      notify("add_to_inside field is not a function")
     end
   end
 
