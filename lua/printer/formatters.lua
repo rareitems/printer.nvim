@@ -45,6 +45,10 @@ local formatters = {
     return string.format('System.out.println("%s = " + %s);', text_inside, text_var)
   end,
 
+  cs = function(text_inside, text_var)
+    return string.format('System.Console.WriteLine("%s = " + %s);', text_inside, text_var)
+  end,
+
   cpp = function(text_inside, text_var)
     return string.format('std::cout << "%s = " << %s << endl;', text_inside, text_var)
   end,
