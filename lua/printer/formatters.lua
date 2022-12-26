@@ -52,6 +52,10 @@ local formatters = {
   cpp = function(text_inside, text_var)
     return string.format('std::cout << "%s = " << %s << endl;', text_inside, text_var)
   end,
+
+  ruby = function(inside, variable)
+    return string.format('pp "%s = ", %s', inside, variable)
+  end,
 }
 
 return formatters
