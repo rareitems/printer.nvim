@@ -19,6 +19,7 @@
 
 local UsersFormatters = {}
 local Behavior = nil
+local Register = nil
 
 local notify = function(text)
   vim.notify("PRINTER: " .. text)
@@ -95,7 +96,7 @@ local function input(text)
     if Behavior == "insert_below" then
       vim.fn.execute("normal! o" .. text_to_insert)
     elseif Behavior == "yank" then
-      vim.fn.setreg('"', text_to_insert)
+      vim.fn.setreg(Register, text_to_insert)
     end
   end
 end
@@ -149,6 +150,7 @@ Printer.setup = function(cfg_user)
 
   UsersFormatters = cfg_user.formatters or {}
   Behavior = cfg_user.behavior or "insert_below"
+  Register = cfg_user.yank_register or '"'
   vim.g.printer = {}
 end
 
