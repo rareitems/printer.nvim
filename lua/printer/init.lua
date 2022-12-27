@@ -140,8 +140,8 @@ Printer.setup = function(cfg_user)
   vim.keymap.set("n", "<Plug>(printer_print)", operator_normal, { expr = true, desc = "Get text out of textobject formatted for debug printing" })
 
   if cfg_user.add_to_inside then
-    if type(value) == "function" then
-      AddToInside = value
+    if type(cfg_user.add_to_inside) == "function" then
+      AddToInside = cfg_user.add_to_inside
     else
       notify("add_to_inside field is not a function")
     end
