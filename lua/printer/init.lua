@@ -39,7 +39,7 @@ end
 local function get_text_from_textobject()
   local range = get_textobject_range()
   if range.srow == range.erow then
-    -- rows (lines) are 1 based indexed but have to be 0-based and inclusive so substracting 1 from both start and end
+    -- rows (lines) are 1 based indexed but have to be 0-based and inclusive so subtracting 1 from both start and end
     -- columns are 0 based indexed, have to be exclusive, so adding 1 to the end
     return vim.api.nvim_buf_get_text(0, range.srow - 1, range.scol, range.erow - 1, range.ecol + 1, {})
   else
@@ -59,7 +59,7 @@ end
 local function get_text_from_visualrange()
   local range = get_visual_range()
   if range.srow == range.erow then
-    -- rows (lines) are 1 based indexed but have to be 0-based and inclusive so substracting 1 from both start and end
+    -- rows (lines) are 1 based indexed but have to be 0-based and inclusive so subtracting 1 from both start and end
     -- columns are 0 based indexed, have to be exclusive, so adding 1 to the end
     return vim.api.nvim_buf_get_text(0, range.srow - 1, range.scol, range.erow - 1, range.ecol + 1, {})
   else
@@ -76,10 +76,17 @@ end
 
 local function input(text)
   local filetype = vim.bo.filetype
-  local printer = vim.b["printer"] or vim.g.printer[filetype] or UsersFormatters[filetype] or require("printer.formatters")[filetype]
+  local printer = vim.b["printer"]
+    or vim.g.printer[filetype]
+    or UsersFormatters[filetype]
+    or require("printer.formatters")[filetype]
 
   if printer == nil then
-    notify("no formatter defined for " .. filetype .. " filetype. See ':help Printer.setting_custom_formatters' on how to add formatter for this filetype.")
+    notify(
+      "no formatter defined for "
+        .. filetype
+        .. " filetype. See ':help Printer.setting_custom_formatters' on how to add formatter for this filetype."
+    )
     return
   end
 
@@ -137,7 +144,12 @@ Printer.setup = function(cfg_user)
     notify("Printer config was called without a keymap")
   end
 
-  vim.keymap.set("n", "<Plug>(printer_print)", operator_normal, { expr = true, desc = "Get text out of textobject formatted for debug printing" })
+  vim.keymap.set(
+    "n",
+    "<Plug>(printer_print)",
+    operator_normal,
+    { expr = true, desc = "Get text out of textobject formatted for debug printing" }
+  )
 
   if cfg_user.add_to_inside then
     if type(cfg_user.add_to_inside) == "function" then
