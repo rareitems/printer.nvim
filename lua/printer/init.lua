@@ -93,7 +93,8 @@ local function input(text)
     end
 
     if Behavior == "insert_below" then
-      vim.fn.execute("normal! o" .. text_to_insert)
+      vim.fn.append(vim.fn.line("."), text_to_insert)
+      vim.fn.execute("normal! 2==")
     elseif Behavior == "yank" then
       vim.fn.setreg('"', text_to_insert)
     end
