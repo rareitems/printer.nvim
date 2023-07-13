@@ -50,7 +50,7 @@ local formatters = {
   end,
 
   cpp = function(text_inside, text_var)
-    return string.format('std::cout << "%s = " << %s << endl;', text_inside, text_var)
+    return string.format('std::cout << "%s = " << %s << std::endl;', text_inside, text_var)
   end,
 
   ruby = function(inside, variable)
