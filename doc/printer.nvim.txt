@@ -1,0 +1,50 @@
+*printer.nvim.txt*
+*Printer* *printer* *printer.nvim*
+==============================================================================
+Default Config                                          *Printer.default_config*
+
+>
+{
+    behavior = "insert_below", -- default behaviour either "insert_below" for inserting the debug print below or "yank" for yanking the debug print
+    formatters  = { -- check lua/formatters.lua for default value of formatters },
+    add_to_inside = function default_addtoinside(text) return string.format("[%s:%s] %s", vim.fn.expand("%"), vim.fn.line("."), text) end,
+    -- function with signature (string) -> string which adds some text to the string inside print statement
+    default_register = [["]], -- if register is not specified to which register should "yank" put debug print
+}
+<
+
+==============================================================================
+Setting Custom Formatters                    *Printer.setting_custom_formatters*
+
+ Custom formatters can be setup from 'printer.setup', setting 'vim.b.printer' variable or 'vim.g.printer[filtetype]' where 'filetype' is name of the filetype.
+
+==============================================================================
+Available Keymaps                                    *Printer.available_keymaps*
+
+ "<Plug>(printer_below)" -> Adds a line below with debug print based on the motion
+ "<Plug>(printer_yank)"  -> Yanks a line with debug print based on the motion
+ "<Plug>(printer_print)" -> Either adds or yanks the debug print (based on the supplied config)
+Example:
+   vim.keymap.set("n", "gP", "<Plug>(printer_yank)")
+   vim.keymap.set("v", "gP", "<Plug>(printer_yank)")
+
+==============================================================================
+Setting Custom addtoinside                  *Printer.setting_custom_addtoinside*
+
+ Function which adds some text to the string inside the print statement with '(string) -> string' signature can be setup from 'printer.setup', setting 'vim.b.printer_addtoinside' variable or 'vim.g.printer_addtoinside'
+
+Printer.config                                                  *Printer.config*
+
+    Fields: ~
+        {behavior}          (string)    default behaviour either "insert_below" for inserting the debug print below or "yank" for yanking the debug print
+        {add_to_inside}     (function)  function with signature (string) -> string which adds some text to the string inside print statement
+        {keymap}            (string)    default keymap
+        {formatters}        (table)     table of filetypes and function formatters
+        {default_register}  (string)    to which register should "yank" put debug print if register is not specified
+
+
+Printer.setup()                                                  *Printer.setup*
+     Used for setting initial configuration see |Printer.config|
+
+
+vim:tw=78:ts=8:noet:ft=help:norl:

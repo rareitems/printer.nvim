@@ -6,8 +6,19 @@ Neovim plugin that adds an operator which allows adding printing/logging stateme
 
 ### Installation
 
-- With [packer.nvim](https://github.com/wbthomason/packer.nvim)
+- With [lazy](https://github.com/folke/lazy.nvim)
+```lua
+{
+    'rareitems/printer.nvim',
+    config = function()
+        require('printer').setup({
+            keymap = "gp" -- Plugin doesn't have any keymaps by default
+          })
+    end
+}
+```
 
+- With [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
 use {
     'rareitems/printer.nvim',
@@ -27,10 +38,11 @@ Use your keymap followed by a motion to quickly print/log the text from the moti
 
 ```lua
 {
-    behavior = "insert_below", -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
-    formatters  = {
-      -- check lua/formatters.lua for default value of formatters
-    }
+    behavior = "insert_below", -- default behaviour either "insert_below" for inserting the debug print below or "yank" for yanking the debug print
+    formatters  = {}, -- check lua/formatters.lua for default value of formatters
+    add_to_inside = function default_addtoinside(text) return string.format("[%s:%s] %s", vim.fn.expand("%"), vim.fn.line("."), text) end,
+    -- function with signature (string) -> string which adds some text to the string inside print statement by default it adds the filename and line from
+    default_register = [["]], -- if register is not specified to which register should "yank" put debug print
 }
 ```
 
@@ -59,11 +71,19 @@ use {
             add_to_inside = function(text)
                 return string.format("[%s:%s] %s", vim.fn.expand("%"), vim.fn.line("."), text)
             end,
-            -- set to to indenity function to turn off the default behaviour
+            -- to turn off default behaviour and add nothing
             -- add_to_inside = function(text)
             --     return text
             -- end,
           })
+
+        -- keymap to always yank the debug print
+        vim.keymap.set("n", "gp", "<Plug>(printer_yank)") 
+        vim.keymap.set("v", "gp", "<Plug>(printer_yank)")  
+
+        -- keymap to always insert below the debug print
+        vim.keymap.set("n", "gp", "<Plug>(printer_below)") 
+        vim.keymap.set("v", "gp", "<Plug>(printer_below)")
 
         -- You can use use '<Plug>printer_print' to call the pluging inside more advanced keymaps
         -- for example a keymap that always adds a prnt statement based on 'iw'
