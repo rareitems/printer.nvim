@@ -20,13 +20,17 @@
 local UsersFormatters = {}
 local Behavior = nil
 
-local notify = function(text)
-    vim.notify("PRINTER: " .. text)
-end
 
--- local notify_error = function(text)
---   vim.notify("PRINTER: " .. text, vim.log.levels.ERROR)
--- end
+local function notify(msg, level, opts)
+    vim.notify(
+        "printer: " .. msg,
+        level or vim.log.levels.INFO,
+        vim.tbl_extend("keep", opts or {}, {
+            title = "printer",
+            icon = "󰐪",
+        })
+    )
+end
 
 -- Get range of a textobject
 local function get_textobject_range()
@@ -40,7 +44,7 @@ end
 local function get_text_from_textobject()
     local range = get_textobject_range()
     if range.srow == range.erow then
-        -- rows (lines) are 1 based indexed but have to be 0-based and inclusive so substracting 1 from both start and end
+        -- rows (lines) are 1 based indexed but have to be 0-based and inclusive so subtracting 1 from both start and end
         -- columns are 0 based indexed, have to be exclusive, so adding 1 to the end
         return vim.api.nvim_buf_get_text(
             0,
@@ -51,7 +55,7 @@ local function get_text_from_textobject()
             {}
         )
     else
-        notify("printer.nvim doesn't support multiple lines textobjects")
+        notify("printer.nvim doesn't support multiple lines ranges", vim.log.levels.ERROR)
         return nil
     end
 end
@@ -68,7 +72,7 @@ end
 local function get_text_from_visualrange()
     local range = get_visual_range()
     if range.srow == range.erow then
-        -- rows (lines) are 1 based indexed but have to be 0-based and inclusive so substracting 1 from both start and end
+        -- rows (lines) are 1 based indexed but have to be 0-based and inclusive so subtracting 1 from both start and end
         -- columns are 0 based indexed, have to be exclusive, so adding 1 to the end
         return vim.api.nvim_buf_get_text(
             0,
@@ -79,7 +83,7 @@ local function get_text_from_visualrange()
             {}
         )
     else
-        notify("printer.nvim doesn't support multiple lines ranges")
+        notify("printer.nvim doesn't support multiple lines ranges", vim.log.levels.ERROR)
         return nil
     end
 end
@@ -181,7 +185,7 @@ Printer.setup = function(cfg_user)
         if type(cfg_user.add_to_inside) == "function" then
             AddToInside = cfg_user.add_to_inside
         else
-            notify("add_to_inside field is not a function")
+            notify("add_to_inside field is not a function", vim.log.levels.ERROR)
         end
     end
 
