@@ -1,13 +1,12 @@
----@mod Printer.configuration Config
+---@mod Printer.default_config Default Config
 ---@brief [[
 --->
 ---{
----    behavior = "insert_below", -- behavior for the operator, "yank" will not insert but instead put text into the default '"' register
----    formatters  = {
----        filetype = function (text, text) return text end
----        -- check lua/formatters.lua for default value of formatters
----    },
----    add_to_inside = function(text) return text end -- function which adds some text to the string inside print statement
+---    behavior = "insert_below", -- default behaviour either "insert_below" for inserting the debug print below or "yank" for yanking the debug print
+---    formatters  = { -- check lua/formatters.lua for default value of formatters },
+---    add_to_inside = function default_addtoinside(text) return string.format("[%s:%s] %s", vim.fn.expand("%"), vim.fn.line("."), text) end,
+---    -- function with signature (string) -> string which adds some text to the string inside print statement
+---    default_register = [["]], -- if register is not specified to which register should "yank" put debug print
 ---}
 ---<
 ---@brief ]]
@@ -17,9 +16,28 @@
 --- Custom formatters can be setup from 'printer.setup', setting 'vim.b.printer' variable or 'vim.g.printer[filtetype]' where 'filetype' is name of the filetype.
 ---@brief ]]
 
-local UsersFormatters = {}
-local Behavior = nil
+---@mod Printer.available_keymaps Available Keymaps
+---@brief [[
+--- "<Plug>(printer_below)" -> Adds a line below with debug print based on the motion
+--- "<Plug>(printer_yank)"  -> Yanks a line with debug print based on the motion
+--- "<Plug>(printer_print)" -> Either adds or yanks the debug print (based on the supplied config)
+---Example:
+---   vim.keymap.set("n", "gP", "<Plug>(printer_yank)")
+---   vim.keymap.set("v", "gP", "<Plug>(printer_yank)")
+---@brief ]]
 
+---@mod Printer.setting_custom_addtoinside Setting Custom addtoinside
+---@brief [[
+--- Function which adds some text to the string inside the print statement with '(string) -> string' signature can be setup from 'printer.setup', setting 'vim.b.printer_addtoinside' variable or 'vim.g.printer_addtoinside'
+---@brief ]]
+
+---@class Printer.config
+---@field behavior string default behaviour either "insert_below" for inserting the debug print below or "yank" for yanking the debug print
+---@field add_to_inside function function with signature (string) -> string which adds some text to the string inside print statement
+---@field keymap string default keymap
+---@field formatters table table of filetypes and function formatters
+---@field default_register string to which register should "yank" put debug print if register is not specified
+local CONFIG = {}
 
 local function notify(msg, level, opts)
     vim.notify(
@@ -53,7 +71,7 @@ local function get_text_from_textobject()
             range.erow - 1,
             range.ecol + 1,
             {}
-        )
+        )[1]
     else
         notify("printer.nvim doesn't support multiple lines ranges", vim.log.levels.ERROR)
         return nil
@@ -81,79 +99,168 @@ local function get_text_from_visualrange()
             range.erow - 1,
             range.ecol + 1,
             {}
-        )
+        )[1]
     else
         notify("printer.nvim doesn't support multiple lines ranges", vim.log.levels.ERROR)
         return nil
     end
 end
 
-local Printer = {}
-
-AddToInside = function(text)
+local function default_addtoinside(text)
     return string.format("[%s:%s] %s", vim.fn.expand("%"), vim.fn.line("."), text)
 end
 
-local function input(text)
+local function input_below(text)
     local filetype = vim.bo.filetype
     local printer = vim.b["printer"]
         or vim.g.printer[filetype]
-        or UsersFormatters[filetype]
+        or CONFIG.formatters[filetype]
         or require("printer.formatters")[filetype]
 
     if printer == nil then
         notify(
             "no formatter defined for "
-                .. filetype
-                .. " filetype. See ':help Printer.setting_custom_formatters' on how to add formatter for this filetype."
+            .. filetype
+            .. " filetype. See ':help Printer.setting_custom_formatters' on how to add formatter for this filetype."
         )
         return
     end
 
     if text ~= nil then
-        local text_to_insert
+        local add_to_inside = vim.b["printer_addtoinside"]
+            or vim.g["printer_addtoinside"]
+            or CONFIG.add_to_inside
+            or default_addtoinside
 
-        if AddToInside then
-            text_to_insert = printer(AddToInside(text), text)
-        else
-            text_to_insert = printer(text, text)
-        end
+        local text_to_insert = printer(add_to_inside(text), text)
+        vim.fn.execute("normal! o" .. text_to_insert)
+    end
+end
 
-        if Behavior == "insert_below" then
-            vim.fn.execute("normal! o" .. text_to_insert)
-        elseif Behavior == "yank" then
-            vim.fn.setreg('"', text_to_insert)
-        end
+local function yank(text)
+    local filetype = vim.bo.filetype
+    local printer = vim.b["printer"]
+        or vim.g.printer[filetype]
+        or CONFIG.formatters[filetype]
+        or require("printer.formatters")[filetype]
+
+    if printer == nil then
+        notify(
+            "no formatter defined for "
+            .. filetype
+            .. " filetype. See ':help Printer.setting_custom_formatters' on how to add formatter for this filetype."
+        )
+        return
+    end
+
+    if text ~= nil then
+        local add_to_inside = vim.b["printer_addtoinside"]
+            or vim.g["printer_addtoinside"]
+            or CONFIG.add_to_inside
+            or default_addtoinside
+
+        local text_to_insert = printer(add_to_inside(text), text)
+        local register = vim.v.register or CONFIG.default_register
+        vim.fn.setreg(register, text_to_insert)
     end
 end
 
 ---@private
-Printer._normal_print = function()
-    local text = get_text_from_textobject()[1]
+local Printer = {}
+
+---@private
+Printer._normal_print_below = function()
+    local text = get_text_from_textobject()
     if text then
-        input(text)
+        input_below(text)
     end
 end
 
-local function operator_normal()
-    vim.cmd([[set operatorfunc=v:lua.require'printer'._normal_print]])
+---@private
+Printer._normal_print_yank = function()
+    local text = get_text_from_textobject()
+    if text then
+        yank(text)
+    end
+end
+
+---@private
+Printer._visual_print_below = function()
+    local text = get_text_from_visualrange()
+    if text then
+        yank(text)
+    end
+end
+
+---@private
+Printer._visual_print_yank = function()
+    local text = get_text_from_visualrange()
+    if text then
+        yank(text)
+    end
+end
+
+local function operator_below()
+    local mode = vim.fn.mode()
+    if mode == "n" then
+        vim.cmd([[set operatorfunc=v:lua.require'printer'._normal_print_below]])
+    elseif mode == "v" then
+        vim.cmd([[set operatorfunc=v:lua.require'printer'._visual_print_below]])
+    else
+        notify("called from unsupported mode :" .. mode, vim.log.levels.ERROR)
+        return
+    end
+    return "g@"
+end
+
+local function operator_yank()
+    local mode = vim.fn.mode()
+    if mode == "n" then
+        vim.cmd([[set operatorfunc=v:lua.require'printer'._normal_print_yank]])
+    elseif mode == "v" then
+        vim.cmd([[set operatorfunc=v:lua.require'printer'._visual_print_yank]])
+    else
+        notify("called from unsupported mode :" .. mode, vim.log.levels.ERROR)
+        return
+    end
     return "g@"
 end
 
 ---@private
-Printer._visual_print = function()
-    local text = get_text_from_visualrange()[1]
+Printer._normal_print_behavior = function()
+    local text = get_text_from_textobject()
     if text then
-        input(text)
+        if CONFIG.behavior == "insert_below" then
+            input_below(text)
+        elseif CONFIG.behavior == "yank" then
+            yank(text)
+        end
     end
 end
 
-local function operator_visual()
-    vim.cmd([[set operatorfunc=v:lua.require'printer'._visual_print]])
+local function operator_normal_behavior()
+    vim.cmd([[set operatorfunc=v:lua.require'printer'._normal_print_behavior]])
     return "g@"
 end
 
---- Used for setting initial configuration see |printer.configuration|
+---@private
+Printer._visual_print_behavior = function()
+    local text = get_text_from_visualrange()
+    if text then
+        if CONFIG.behavior == "insert_below" then
+            input_below(text)
+        elseif CONFIG.behavior == "yank" then
+            yank(text)
+        end
+    end
+end
+
+local function operator_visual_behavior()
+    vim.cmd([[set operatorfunc=v:lua.require'printer'._visual_print_behavior]])
+    return "g@"
+end
+
+--- Used for setting initial configuration see |Printer.config|
 Printer.setup = function(cfg_user)
     cfg_user = cfg_user or {}
 
@@ -161,36 +268,60 @@ Printer.setup = function(cfg_user)
         vim.keymap.set(
             "n",
             cfg_user.keymap,
-            operator_normal,
-            { expr = true, desc = "Operator keymap for printer.nvim" }
+            operator_normal_behavior,
+            { expr = true, desc = "(printer.nvim) Operator keymap for printer.nvim" }
         )
         vim.keymap.set(
             "v",
             cfg_user.keymap,
-            operator_visual,
-            { expr = true, desc = "Operator keymap for printer.nvim" }
+            operator_visual_behavior,
+            { expr = true, desc = "(printer.nvim) Operator keymap for printer.nvim" }
         )
     else
         notify("Printer config was called without a keymap")
     end
 
-    vim.keymap.set(
-        "n",
-        "<Plug>(printer_print)",
-        operator_normal,
-        { expr = true, desc = "Get text out of textobject formatted for debug printing" }
-    )
+    vim.keymap.set("n", "<Plug>(printer_print)", operator_normal_behavior, {
+        expr = true,
+        desc = "(printer.nvim) Debug print based on the config behavior",
+    })
+
+    vim.keymap.set("v", "<Plug>(printer_print)", operator_visual_behavior, {
+        expr = true,
+        desc = "(printer.nvim) Debug print based on the config behavior - visual",
+    })
+
+    vim.keymap.set("n", "<Plug>(printer_below)", operator_below, {
+        expr = true,
+        desc = "(printer.nvim) Add a line below with debug print based on the motion",
+    })
+
+    vim.keymap.set("v", "<Plug>(printer_below)", operator_below, {
+        expr = true,
+        desc = "(printer.nvim) Add a line below with debug print based on the visual selection",
+    })
+
+    vim.keymap.set("n", "<Plug>(printer_yank)", operator_yank, {
+        expr = true,
+        desc = "(printer.nvim) Yank a debug print based on the motion",
+    })
+
+    vim.keymap.set("v", "<Plug>(printer_yank)", operator_yank, {
+        expr = true,
+        desc = "(printer.nvim) Yank a debug print based on the visual selection",
+    })
 
     if cfg_user.add_to_inside then
         if type(cfg_user.add_to_inside) == "function" then
-            AddToInside = cfg_user.add_to_inside
+            CONFIG.add_to_inside = cfg_user.add_to_inside
         else
             notify("add_to_inside field is not a function", vim.log.levels.ERROR)
         end
     end
 
-    UsersFormatters = cfg_user.formatters or {}
-    Behavior = cfg_user.behavior or "insert_below"
+    CONFIG.behavior = cfg_user.behavior or "insert_below"
+    CONFIG.formatters = cfg_user.formatters or {}
+    CONFIG.default_register = cfg_user.default_register or [["]]
     vim.g.printer = {}
 end
 
